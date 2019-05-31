@@ -97,11 +97,12 @@ class UserController extends AbstractController
                                 $form->get('newPassword')->getData()
                             )
                         );
+                        // Sauvegarde des infos (dont le mdp)
                         $manager = $this->getDoctrine()->getManager();
                         $manager->persist($user);
                         $manager->flush();
 
-                        return $this->redirectToRoute('user_index', [
+                        return $this->redirectToRoute('user_show', [
                             'id' => $user->getId(),
                         ]);
                         
@@ -112,7 +113,16 @@ class UserController extends AbstractController
                     $form->addError(new FormError('Le mot de passe n\'est pas valide!'));
                 }
             } else {
+                // Sauvegarde des autres infos (sauf mot de passe)
                 $form->addError(new FormError('Veuillez fournir l\'ancien mot de passe!'));
+                
+                $manager = $this->getDoctrine()->getManager();
+                        $manager->persist($user);
+                        $manager->flush();
+
+                        return $this->redirectToRoute('user_show', [
+                            'id' => $user->getId(),
+                        ]);
             }
         }
 
