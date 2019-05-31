@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Form\FormError;
 
 /**
  * @Route("/user")
@@ -88,8 +89,7 @@ class UserController extends AbstractController
             if($oldPassword!='') {
                 //L'ancien mot de passe correspond
                 if($passwordEncoder->isPasswordValid($user, $oldPassword)) {
-                    //Le nouveau mot de passe est confirmé
-                    if($newPassword==$confPassword) {
+                    if(!empty($newPassword)){
                         //Crypter le nouveau mot de passe
                         $user->setPassword(
                             $passwordEncoder->encodePassword(
@@ -97,17 +97,23 @@ class UserController extends AbstractController
                                 $form->get('newPassword')->getData()
                             )
                         );
-                    }
-                }
-            }
-                        
-            $manager = $this->getDoctrine()->getManager();
-            $manager->persist($user);
-            $manager->flush();
+                        $manager = $this->getDoctrine()->getManager();
+                        $manager->persist($user);
+                        $manager->flush();
 
-            return $this->redirectToRoute('user_index', [
-                'id' => $user->getId(),
-            ]);
+                        return $this->redirectToRoute('user_index', [
+                            'id' => $user->getId(),
+                        ]);
+                        
+                    } else {
+                        $form->addError(new FormError('Les mots de passe ne correspondent pas!'));
+                    }
+                } else {
+                    $form->addError(new FormError('Le mot de passe n\'est pas valide!'));
+                }
+            } else {
+                $form->addError(new FormError('Veuillez fournir l\'ancien mot de passe!'));
+            }
         }
 
         return $this->render('user/edit.html.twig', [
