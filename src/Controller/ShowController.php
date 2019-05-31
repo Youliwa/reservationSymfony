@@ -59,6 +59,17 @@ class ShowController extends AbstractController
      */
     public function show(Show $show): Response
     {
+        $repository = $this->getDoctrine()->getManager()->getRepository(Show::class);
+        
+        foreach($show->getTroupe() as $troupe) {
+            if($troupe->getType()->getType()=='metteur en scène') {
+                $show->author = $troupe->getArtist()->getFirstname()." ".$troupe->getArtist()->getFirstname();
+                break;
+            }
+        }
+        
+        //TODO $show->author = $repository->findArtistsByType('metteur en scène');
+                
         return $this->render('show/show.html.twig', [
             'show' => $show,
         ]);
